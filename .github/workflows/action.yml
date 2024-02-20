@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup Docker
         uses: ./.github/actions/setup-docker
         with:
@@ -21,7 +21,7 @@ jobs:
           docker-password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build Debian Bullseye Image
         id: docker_build_ubuntu_latest
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
@@ -34,14 +34,14 @@ jobs:
         run: |
           docker run --rm ubuntu_imagick_latest convert -list configure | grep DELEGATES | grep "bzlib djvu fftw fontconfig freetype heic jbig jng jp2 jpeg lcms lqr ltdl lzma openexr pangocairo png tiff webp wmf x xml zlib"
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bullseye-tests
           path: test-images
       - name: Push Debian Bullseye image
         id: docker_push_bullseye
         if: ${{ github.event_name == 'release' }}
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
