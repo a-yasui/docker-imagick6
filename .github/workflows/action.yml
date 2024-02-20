@@ -34,7 +34,7 @@ jobs:
         run: |
           docker run --rm ubuntu_imagick_latest convert -list configure | grep DELEGATES | grep "bzlib djvu fftw fontconfig freetype heic jbig jng jp2 jpeg lcms lqr ltdl lzma openexr pangocairo png tiff webp wmf x xml zlib"
       - name: Upload Test Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bullseye-tests
           path: test-images
