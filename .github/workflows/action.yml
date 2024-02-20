@@ -1,0 +1,53 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - '**'
+  release:
+    types:
+      - published
+
+jobs:
+  build-debian-bullseye:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Docker
+        uses: ./.github/actions/setup-docker
+        with:
+          docker-user: ${{ secrets.DOCKERHUB_USERNAME }}
+          docker-password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build Debian Bullseye Image
+        id: docker_build_ubuntu_latest
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: ubuntu_imagick_latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+      - name: Testing Debian Bullseye Image
+        run: |
+          docker run --rm ubuntu_imagick_latest convert -list configure | grep DELEGATES | grep "bzlib djvu fftw fontconfig freetype heic jbig jng jp2 jpeg lcms lqr ltdl lzma openexr pangocairo png tiff webp wmf x xml zlib"
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: bullseye-tests
+          path: test-images
+      - name: Push Debian Bullseye image
+        id: docker_push_bullseye
+        if: ${{ github.event_name == 'release' }}
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          load: false
+          platforms: linux/amd64,linux/arm64
+          tags: atyasu/ubuntu-imagemagick:${{ github.event.release.tag_name }},atyasu/ubuntu-imagemagick:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
